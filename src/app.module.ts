@@ -4,6 +4,8 @@ import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { AuthModule } from './auth/auth.module';
+import { DatabaseModule } from './database/database.module';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -17,9 +19,15 @@ import { AuthModule } from './auth/auth.module';
       database: 'auth_db',
       models: [],
     }),
-    AuthModule
+    AuthModule,
+    DatabaseModule,
+    JwtModule.register({
+      secret: 'IDontPlayBoyIaintHughHuffner',
+      signOptions: { expiresIn: '60s' },
+    })
   ],
   controllers: [AppController],
   providers: [AppService],
+  exports: [JwtModule]
 })
 export class AppModule {}
