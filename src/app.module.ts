@@ -10,21 +10,12 @@ import { JwtModule } from '@nestjs/jwt';
 @Module({
   imports: [
     UsersModule,
-    SequelizeModule.forRoot({
-      dialect: 'postgres',
-      host: '127.0.0.1',
-      port: 5432,
-      username: 'elonaire',
-      password: 'Asenekatenka_95!?',
-      database: 'auth_db',
-      models: [],
-    }),
     AuthModule,
     DatabaseModule,
     JwtModule.register({
       secret: 'IDontPlayBoyIaintHughHuffner',
       signOptions: { expiresIn: '60s' },
-    })
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],

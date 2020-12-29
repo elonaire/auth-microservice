@@ -1,11 +1,11 @@
-import { Table, Column, Model } from 'sequelize-typescript';
+import { Table, Column, Model, ForeignKey, BelongsToMany } from 'sequelize-typescript';
 
 @Table
 export class User extends Model<User> {
   @Column
   username: string;
 
-  @Column
+  @Column({primaryKey: true})
   user_id: string;
 
   @Column
@@ -31,4 +31,36 @@ export class User extends Model<User> {
 
   @Column
   password: string;
+
+  @BelongsToMany(() => Role, () => UserRole)
+  roles: Role[];
+
 }
+
+@Table
+export class Role extends Model<Role> {
+
+  @Column({primaryKey: true})
+  role_id: string;
+
+  @Column
+  role: string;
+
+  @BelongsToMany(() => User, () => UserRole)
+  users: User[];
+
+}
+
+@Table
+export class UserRole extends Model<UserRole> {
+
+  @ForeignKey(() => User)
+  @Column
+  user_id: string;
+
+  @ForeignKey(() => Role)
+  @Column
+  role_id: string;
+
+}
+

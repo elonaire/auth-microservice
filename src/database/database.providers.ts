@@ -1,5 +1,5 @@
 import { Sequelize } from 'sequelize-typescript';
-import { User } from '../users/user.entity';
+import { Role, User, UserRole } from '../users/user.entity';
 
 export const databaseProviders = [
   {
@@ -13,7 +13,7 @@ export const databaseProviders = [
         password: 'Asenekatenka_95!?',
         database: 'auth_db',
       });
-      sequelize.addModels([User]);
+      sequelize.addModels([User, Role, UserRole]);
       await sequelize.sync();
       return sequelize;
     },
