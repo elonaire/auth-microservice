@@ -54,8 +54,8 @@ export class UsersService {
     const userRole = new UserRole({role_id: roleFound.role_id, user_id: userInfo.user_id});
     const user: User = await this.usersRepository.create<User>(userInfo);
     
-    // TO - DO (inserting into a through-table)
-    await user.$add('roles', new UserRole(), {through: userRole});
+    // inserting into UserRoles through-table)
+    await user.$add('roles', userRole.role_id);
     return user;
   }
 
