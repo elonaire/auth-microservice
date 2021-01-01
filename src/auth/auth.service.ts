@@ -1,15 +1,17 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
-import { User } from '../users/user.entity';
+import { Role, User, UserRole } from '../users/user.entity';
 import { LoginDetails } from '../app.controller';
 import * as bcrypt from 'bcrypt';
+import { USER_ROLES_REPOSITORY } from '../constants';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    @Inject(USER_ROLES_REPOSITORY) private userRolesRepository: typeof UserRole,
   ) {}
 
   async validateUser(loginDetails: LoginDetails): Promise<any> {
@@ -32,7 +34,22 @@ export class AuthService {
   }
 
   private async login(user: User): Promise<any> {
-    const payload = { username: user.username, sub: user.user_id};
+    const roles: Role[] = await user.$get('roles');
+    // console.log('roles', roles);
+
+    // get a user's primary role
+    const primaryRole = roles.filter(async role => {
+      const roleId = role['dataValues'].role_id;
+      const userRoles = await this.usersService.getRoles([{user_id: user.user_id}, {role_id: roleId}]);
+      if (userRoles[0]['isPrimary']) {
+        return role;
+      }
+    })[0].getDataValue('role');
+
+    // console.log('primaryRole', primaryRole);
+    
+    
+    const payload = { sub: user.user_id, role: primaryRole };
     return {
       access_token: this.jwtService.sign(payload, {secret: `${process.env.SECRET}`}),
     };

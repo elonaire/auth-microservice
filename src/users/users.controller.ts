@@ -1,36 +1,84 @@
-import { Body, Controller, Get, Post, Put, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/auth.guard';
-import { Role, User } from './user.entity';
+import { Role, User, UserRole } from './user.entity';
 import { UsersService } from './users.service';
 
+export interface AddUserRole {
+    user_id: string;
+    role: string;
+}
+
 @Controller('users')
-
 export class UsersController {
-    constructor(private userService: UsersService) {}
+  constructor(private userService: UsersService) {}
 
-    @Get('fetch')
-    getUsers(@Query() params: string[]): Promise<User[]> {
-        return this.userService.getAllUsers(params);
-    }
+  @UseGuards(JwtAuthGuard)
+  @Get('fetch')
+  getUsers(@Query('user_id') user_id: string): Promise<User[]> {
+    const args = [{ user_id }].filter(arg => {
+      const argKeys = Object.keys(arg);
+      if (arg[argKeys[0]]) {
+        return arg;
+      }
+    });
+    return this.userService.getAllUsers(...args);
+  }
 
-    @Post('create-user')
-    registerUser(@Body() user: User): Promise<User> {
-        return this.userService.registerUser(user);
-    }
+  @Post('create-user')
+  registerUser(@Body() user: User): Promise<User> {
+    return this.userService.registerUser(user);
+  }
 
-    @UseGuards(JwtAuthGuard)
-    @Post('add-role')
-    addRole(@Body() role: Role): Promise<Role> {
-        return this.userService.addRole(role);
-    }
+  @UseGuards(JwtAuthGuard)
+  @Post('add-role')
+  addRole(@Body() role: Role): Promise<Role> {
+    return this.userService.addRole(role);
+  }
 
-    @Get('fetch-roles')
-    fetchRoles(): Promise<Role[]> {
-        return this.userService.getRoles();
-    }
+  @UseGuards(JwtAuthGuard)
+  @Delete('revoke-role/:role_id')
+  revokeRole(@Param('role_id') role_id: string): Promise<any> {
+    return this.userService.revokeRole(role_id);
+  }
 
-    @Put('update-user')
-    updateUser(@Body() user: User): Promise<User> {
-        return this.userService.updateUser(user);
-    }
+  @UseGuards(JwtAuthGuard)
+  @Post('add-user-role')
+  addUserRole(@Body() userRole: AddUserRole): Promise<UserRole> {
+    return this.userService.addUserRole(userRole);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('revoke-user-role/:role_id')
+  revokeUserRole(@Param('role_id') role_id: string): Promise<any> {
+    return this.userService.revokeUserRole(role_id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('fetch-roles')
+  fetchRoles(@Query('user_id') user_id: string): Promise<Role[] | UserRole[]> {
+    const args = [{ user_id }].filter(arg => {
+      const argKeys = Object.keys(arg);
+      if (arg[argKeys[0]]) {
+        return arg;
+      }
+    });
+
+    return this.userService.getRoles(...args);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Put('update-user')
+  updateUser(@Body() user: User): Promise<User> {
+    return this.userService.updateUser(user);
+  }
 }

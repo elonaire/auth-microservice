@@ -1,4 +1,4 @@
-import { Table, Column, Model, ForeignKey, BelongsToMany, IsEmail, IsDate, AllowNull } from 'sequelize-typescript';
+import { Table, Column, Model, ForeignKey, BelongsToMany, IsEmail, AllowNull } from 'sequelize-typescript';
 
 @Table
 export class User extends Model<User> {
@@ -71,6 +71,10 @@ export class UserRole extends Model<UserRole> {
   @ForeignKey(() => Role)
   @Column
   role_id: string;
+
+  @AllowNull(false)
+  @Column
+  isPrimary: boolean;
 
 }
 
