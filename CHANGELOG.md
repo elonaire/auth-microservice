@@ -7,3 +7,6 @@
 ## Thursday 24, December
 - configured JwtModule by registering it for it to work without NestJS can't resolve dependencies of the JWT_MODULE_OPTIONS error.
 -added uuid package
+
+## Thursday 31, December
+- Use .env file for environment variables.

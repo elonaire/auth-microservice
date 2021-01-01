@@ -3,13 +3,15 @@ import { v4 as uuidGenerator } from 'uuid';
 import { Role, User, UserRole } from './user.entity';
 import * as bcrypt from 'bcrypt';
 import { Op } from 'sequelize';
+import { LoginDetails } from '../app.controller';
+import { ROLES_REPOSITORY, USERS_REPOSITORY, USER_ROLES_REPOSITORY } from '../constants';
 
 @Injectable()
 export class UsersService {
   constructor(
-    @Inject('USERS_REPOSITORY') private usersRepository: typeof User,
-    @Inject('ROLES_REPOSITORY') private rolesRepository: typeof Role,
-    @Inject('USER_ROLES_REPOSITORY') private userRolesRepository: typeof UserRole,
+    @Inject(USERS_REPOSITORY) private usersRepository: typeof User,
+    @Inject(ROLES_REPOSITORY) private rolesRepository: typeof Role,
+    @Inject(USER_ROLES_REPOSITORY) private userRolesRepository: typeof UserRole,
   ) {}
 
   async registerUser(userInfo: User): Promise<User> {
@@ -39,15 +41,6 @@ export class UsersService {
           HttpStatus.BAD_REQUEST,
         );
       }
-      
-      // const userInstance = new User;
-      // const addUserRole = await userInstance.$create('roles', {role_id: roleFound.role_id, user_id: userInfo.user_id});
-      // if (!addUserRole) {
-      //   throw new HttpException(
-      //     'Failed to add Role',
-      //     HttpStatus.BAD_REQUEST,
-      //   );
-      // }
     }
     
     userInfo.password = await bcrypt.hash(userInfo.password, 10);
@@ -79,7 +72,7 @@ export class UsersService {
   async getSingleUser(
     findBy: string[],
     check: 'either' | 'all',
-    userDetails: User,
+    userDetails: User | LoginDetails,
   ): Promise<User> {
     let operator: any;
     if (check === 'either') {

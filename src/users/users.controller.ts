@@ -1,13 +1,15 @@
-import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Get, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/auth.guard';
 import { Role, User } from './user.entity';
 import { UsersService } from './users.service';
 
 @Controller('users')
+
 export class UsersController {
     constructor(private userService: UsersService) {}
 
     @Get('fetch')
-    getUsers(@Param() params: string[]): Promise<User[]> {
+    getUsers(@Query() params: string[]): Promise<User[]> {
         return this.userService.getAllUsers(params);
     }
 
@@ -16,6 +18,7 @@ export class UsersController {
         return this.userService.registerUser(user);
     }
 
+    @UseGuards(JwtAuthGuard)
     @Post('add-role')
     addRole(@Body() role: Role): Promise<Role> {
         return this.userService.addRole(role);
