@@ -19,7 +19,7 @@ export class UsersService {
     @Inject(USER_ROLES_REPOSITORY) private userRolesRepository: typeof UserRole,
   ) {}
 
-  async registerUser(userInfo: User): Promise<User> {
+  async registerUser(userInfo: User): Promise<any> {
     let userExists = null;
     userExists = await this.getSingleUser(
       ['username', 'email', 'phone'],
@@ -41,7 +41,7 @@ export class UsersService {
       where: { role: userInfo['role'] || 'USER' },
     });
     if (!roleFound) {
-      throw new HttpException('Invalid role', HttpStatus.BAD_REQUEST);
+      throw new HttpException('Access rights cannot be granted to this user.', HttpStatus.FORBIDDEN);
     }
 
     userInfo.password = await bcrypt.hash(userInfo.password, 10);
@@ -64,18 +64,32 @@ export class UsersService {
         });
       }
 
-      return user;
+      return {
+        message: 'User created successfully'
+      };
     }
   }
 
-  async updateUser(userInfo: User): Promise<User> {
+  async deleteUser(user_id: string): Promise<any> {
+    const deletedUser = await this.usersRepository.destroy({where: {user_id}});
+    if (!deletedUser) {
+      throw new HttpException('Cannot revoke', HttpStatus.BAD_REQUEST);
+    }
+    return {
+      message: 'User deleted'
+    };
+  }
+
+  async updateUser(userInfo: User): Promise<any> {
     if (userInfo.password) {
       userInfo.password = await bcrypt.hash(userInfo.password, 10);
     }
-    const user = await this.usersRepository.update<User>(userInfo, {
+    await this.usersRepository.update<User>(userInfo, {
       where: { user_id: userInfo.user_id },
     });
-    return user;
+    return {
+      message: 'User details updated successfully'
+    };
   }
 
   async getAllUsers(...params: any[]): Promise<User[]> {
@@ -124,7 +138,7 @@ export class UsersService {
     }
   }
 
-  async addRole(roleInfo: Role): Promise<Role> {
+  async addRole(roleInfo: Role): Promise<any> {
     const roleExists = await this.rolesRepository.findOne<Role>({
       where: { role: roleInfo.role },
     });
@@ -132,11 +146,13 @@ export class UsersService {
       throw new HttpException('Role already exists.', HttpStatus.BAD_REQUEST);
     }
     roleInfo.role_id = uuidGenerator();
-    const newRole = await this.rolesRepository.create(roleInfo);
-    return newRole;
+    await this.rolesRepository.create(roleInfo);
+    return {
+      message: 'Role added successfully'
+    };
   }
 
-  async addUserRole(roleInfo: AddUserRole): Promise<UserRole> {
+  async addUserRole(roleInfo: AddUserRole): Promise<any> {
     // verify role existance in DB
     const roleFound: Role = await this.rolesRepository.findOne<Role>({
       where: { role: roleInfo['role'] },
@@ -150,10 +166,12 @@ export class UsersService {
       throw new HttpException('User already has this role', HttpStatus.BAD_REQUEST);
     }
     const user = await this.getSingleUser(['user_id'], 'either', roleInfo);
-    const newRole = await user.$add('roles', roleFound.role_id, {through: {isPrimary: false}});
+    await user.$add('roles', roleFound.role_id, {through: {isPrimary: false}});
     // console.log('newRole', newRole);
     
-    return newRole;
+    return {
+      message: 'User role added successfully'
+    };
   }
 
   async getRoles(...params: any[]): Promise<Role[] | UserRole[]> {
@@ -179,7 +197,7 @@ export class UsersService {
   async revokeUserRole(role_id: string): Promise<any> {
     const revokedRole = await this.userRolesRepository.destroy({where: {role_id, isPrimary: {[Op.ne]: true}}});
     if (!revokedRole) {
-      throw new HttpException('Cannot revoke', HttpStatus.BAD_REQUEST);
+      throw new HttpException('Cannot revoke primary role', HttpStatus.BAD_REQUEST);
     }
     return revokedRole;
   }

@@ -35,13 +35,19 @@ export class UsersController {
   }
 
   @Post('create-user')
-  registerUser(@Body() user: User): Promise<User> {
+  registerUser(@Body() user: User): Promise<any> {
     return this.userService.registerUser(user);
   }
 
   @UseGuards(JwtAuthGuard)
+  @Delete('delete-user/:user_id')
+  deleteUser(@Param('user_id') user_id: string): Promise<any> {
+    return this.userService.deleteUser(user_id);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Post('add-role')
-  addRole(@Body() role: Role): Promise<Role> {
+  addRole(@Body() role: Role): Promise<any> {
     return this.userService.addRole(role);
   }
 
@@ -53,7 +59,7 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Post('add-user-role')
-  addUserRole(@Body() userRole: AddUserRole): Promise<UserRole> {
+  addUserRole(@Body() userRole: AddUserRole): Promise<any> {
     return this.userService.addUserRole(userRole);
   }
 
@@ -78,7 +84,7 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Put('update-user')
-  updateUser(@Body() user: User): Promise<User> {
+  updateUser(@Body() user: User): Promise<any> {
     return this.userService.updateUser(user);
   }
 }

@@ -15,14 +15,21 @@ export class AuthService {
   ) {}
 
   async validateUser(loginDetails: LoginDetails): Promise<any> {
-    const user = await this.usersService.getSingleUser(['username'], 'either', loginDetails);
+    const user = await this.usersService.getSingleUser(
+      ['username'],
+      'either',
+      loginDetails,
+    );
     if (!user) {
       throw new HttpException(
         'Wrong username or password',
         HttpStatus.BAD_REQUEST,
       );
     }
-    const passWordConfirmed = await bcrypt.compare(loginDetails.password, user.password);
+    const passWordConfirmed = await bcrypt.compare(
+      loginDetails.password,
+      user.password,
+    );
     if (user && passWordConfirmed) {
       return await this.login(user);
     }
@@ -35,23 +42,37 @@ export class AuthService {
 
   private async login(user: User): Promise<any> {
     const roles: Role[] = await user.$get('roles');
+    let primaryRole: string;
     // console.log('roles', roles);
 
-    // get a user's primary role
-    const primaryRole = roles.filter(async role => {
-      const roleId = role['dataValues'].role_id;
-      const userRoles = await this.usersService.getRoles([{user_id: user.user_id}, {role_id: roleId}]);
-      if (userRoles[0]['isPrimary']) {
-        return role;
-      }
-    })[0].getDataValue('role');
+    if (roles.length > 0) {
+      // get a user's primary role
+      primaryRole = roles
+        .filter(async role => {
+          const roleId = role['dataValues'].role_id;
+          const userRoles = await this.usersService.getRoles([
+            { user_id: user.user_id },
+            { role_id: roleId },
+          ]);
+          if (userRoles[0]['isPrimary']) {
+            return role;
+          }
+        })[0]
+        .getDataValue('role');
+    } else {
+      throw new HttpException(
+        'User has no rights. Contact system admin.',
+        HttpStatus.FORBIDDEN,
+      );
+    }
 
     // console.log('primaryRole', primaryRole);
-    
-    
+
     const payload = { sub: user.user_id, role: primaryRole };
     return {
-      access_token: this.jwtService.sign(payload, {secret: `${process.env.SECRET}`}),
+      access_token: this.jwtService.sign(payload, {
+        secret: `${process.env.SECRET}`,
+      }),
     };
   }
 }
