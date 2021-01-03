@@ -11,6 +11,19 @@ import {
 } from '../constants';
 import { AddUserRole } from './users.controller';
 
+export interface UserInfo {
+  username: string;
+  user_id?: string;
+  first_name: string;
+  middle_name: string;
+  last_name: string;
+  dob: string;
+  gender: string;
+  password: string;
+  phone: string;
+  email: string;
+}
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -19,7 +32,7 @@ export class UsersService {
     @Inject(USER_ROLES_REPOSITORY) private userRolesRepository: typeof UserRole,
   ) {}
 
-  async registerUser(userInfo: User): Promise<any> {
+  async registerUser(userInfo: UserInfo): Promise<any> {
     let userExists = null;
     userExists = await this.getSingleUser(
       ['username', 'email', 'phone'],
@@ -41,7 +54,10 @@ export class UsersService {
       where: { role: userInfo['role'] || 'USER' },
     });
     if (!roleFound) {
-      throw new HttpException('Access rights cannot be granted to this user.', HttpStatus.FORBIDDEN);
+      throw new HttpException(
+        'Access rights cannot be granted to this user.',
+        HttpStatus.FORBIDDEN,
+      );
     }
 
     userInfo.password = await bcrypt.hash(userInfo.password, 10);
@@ -65,18 +81,20 @@ export class UsersService {
       }
 
       return {
-        message: 'User created successfully'
+        message: 'User created successfully',
       };
     }
   }
 
   async deleteUser(user_id: string): Promise<any> {
-    const deletedUser = await this.usersRepository.destroy({where: {user_id}});
+    const deletedUser = await this.usersRepository.destroy({
+      where: { user_id },
+    });
     if (!deletedUser) {
       throw new HttpException('Cannot revoke', HttpStatus.BAD_REQUEST);
     }
     return {
-      message: 'User deleted'
+      message: 'User deleted',
     };
   }
 
@@ -88,7 +106,7 @@ export class UsersService {
       where: { user_id: userInfo.user_id },
     });
     return {
-      message: 'User details updated successfully'
+      message: 'User details updated successfully',
     };
   }
 
@@ -148,7 +166,7 @@ export class UsersService {
     roleInfo.role_id = uuidGenerator();
     await this.rolesRepository.create(roleInfo);
     return {
-      message: 'Role added successfully'
+      message: 'Role added successfully',
     };
   }
 
@@ -161,16 +179,23 @@ export class UsersService {
       throw new HttpException('Invalid role', HttpStatus.BAD_REQUEST);
     }
 
-    const userHasRole = await this.getRoles([{user_id: roleInfo.user_id, role_id: roleFound.role_id}]);
+    const userHasRole = await this.getRoles([
+      { user_id: roleInfo.user_id, role_id: roleFound.role_id },
+    ]);
     if (userHasRole.length > 0) {
-      throw new HttpException('User already has this role', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        'User already has this role',
+        HttpStatus.BAD_REQUEST,
+      );
     }
     const user = await this.getSingleUser(['user_id'], 'either', roleInfo);
-    await user.$add('roles', roleFound.role_id, {through: {isPrimary: false}});
+    await user.$add('roles', roleFound.role_id, {
+      through: { isPrimary: false },
+    });
     // console.log('newRole', newRole);
-    
+
     return {
-      message: 'User role added successfully'
+      message: 'User role added successfully',
     };
   }
 
@@ -187,7 +212,9 @@ export class UsersService {
   }
 
   async revokeRole(role_id: string): Promise<any> {
-    const revokedRole = await this.rolesRepository.destroy({where: {role_id}});
+    const revokedRole = await this.rolesRepository.destroy({
+      where: { role_id },
+    });
     if (!revokedRole) {
       throw new HttpException('Cannot revoke', HttpStatus.BAD_REQUEST);
     }
@@ -195,9 +222,14 @@ export class UsersService {
   }
 
   async revokeUserRole(role_id: string): Promise<any> {
-    const revokedRole = await this.userRolesRepository.destroy({where: {role_id, isPrimary: {[Op.ne]: true}}});
+    const revokedRole = await this.userRolesRepository.destroy({
+      where: { role_id, isPrimary: { [Op.ne]: true } },
+    });
     if (!revokedRole) {
-      throw new HttpException('Cannot revoke primary role', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        'Cannot revoke primary role',
+        HttpStatus.BAD_REQUEST,
+      );
     }
     return revokedRole;
   }
