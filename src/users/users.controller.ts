@@ -12,6 +12,7 @@ import {
 import { JwtAuthGuard } from '../auth/auth.guard';
 import { Role, User, UserRole } from './user.entity';
 import { UsersService } from './users.service';
+import { AuthRole, Roles } from '../auth/roles.decorator';
 
 export interface AddUserRole {
     user_id: string;
@@ -23,6 +24,7 @@ export class UsersController {
   constructor(private userService: UsersService) {}
 
   @UseGuards(JwtAuthGuard)
+  @Roles(AuthRole.User)
   @Get('fetch')
   getUsers(@Query('user_id') user_id: string): Promise<User[]> {
     const args = [{ user_id }].filter(arg => {
@@ -45,7 +47,7 @@ export class UsersController {
     return this.userService.deleteUser(user_id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Post('add-role')
   addRole(@Body() role: Role): Promise<any> {
     return this.userService.addRole(role);
