@@ -1,4 +1,5 @@
 import { Table, Column, Model, ForeignKey, BelongsToMany, IsEmail, AllowNull } from 'sequelize-typescript';
+import { ApiProperty } from '@nestjs/swagger';
 
 @Table
 export class User extends Model<User> {
@@ -54,6 +55,7 @@ export class Role extends Model<Role> {
 
   @AllowNull(false)
   @Column
+  @ApiProperty()
   role: string;
 
   @BelongsToMany(() => User, () => UserRole)
@@ -78,3 +80,105 @@ export class UserRole extends Model<UserRole> {
 
 }
 
+export class UserResponse {
+  @ApiProperty()
+  username: string;
+
+  @ApiProperty()
+  user_id: string;
+
+  @ApiProperty()
+  first_name: string;
+
+  @ApiProperty()
+  middle_name: string;
+
+  @ApiProperty()
+  last_name: string;
+
+  @ApiProperty()
+  dob: string;
+
+  @ApiProperty()
+  phone: string;
+
+  @ApiProperty()
+  email: string;
+
+  @ApiProperty()
+  gender: string;
+}
+
+export class UserDto {
+  @ApiProperty()
+  username: string;
+
+  @ApiProperty()
+  first_name: string;
+
+  @ApiProperty()
+  middle_name: string;
+
+  @ApiProperty()
+  last_name: string;
+
+  @ApiProperty()
+  dob: string;
+
+  @ApiProperty()
+  phone: string;
+
+  @ApiProperty()
+  email: string;
+
+  @ApiProperty()
+  gender: string;
+
+  @ApiProperty()
+  password: string;
+}
+
+export class UserUpdateDto {
+  @ApiProperty()
+  username: string;
+
+  @ApiProperty()
+  user_id: string;
+
+  @ApiProperty()
+  first_name: string;
+
+  @ApiProperty()
+  middle_name: string;
+
+  @ApiProperty()
+  last_name: string;
+
+  @ApiProperty()
+  dob: string;
+
+  @ApiProperty()
+  phone: string;
+
+  @ApiProperty()
+  email: string;
+
+  @ApiProperty()
+  gender: string;
+
+  @ApiProperty()
+  password: string;
+}
+
+export class UserRoleDto {
+  @ApiProperty()
+  user_id: string;
+
+  @ApiProperty()
+  role: string;
+}
+
+export class RoleDto {
+  @ApiProperty()
+  role: string;
+}
