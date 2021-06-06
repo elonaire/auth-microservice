@@ -2,9 +2,9 @@ import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { Role, User, UserRole } from '../users/user.entity';
-import { LoginDetails } from '../app.controller';
 import * as bcrypt from 'bcrypt';
 import { USER_ROLES_REPOSITORY } from '../constants';
+import { LoginDetails } from '../app.entity';
 
 @Injectable()
 export class AuthService {
