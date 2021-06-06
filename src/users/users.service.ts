@@ -1,15 +1,14 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { v4 as uuidGenerator } from 'uuid';
-import { Role, User, UserRole } from './user.entity';
+import { UserRoleDto, Role, RoleDto, User, UserResponse, UserRole, UserUpdateDto } from './user.entity';
 import * as bcrypt from 'bcrypt';
 import { Op } from 'sequelize';
-import { LoginDetails } from '../app.controller';
 import {
   ROLES_REPOSITORY,
   USERS_REPOSITORY,
   USER_ROLES_REPOSITORY,
 } from '../constants';
-import { AddUserRole } from './users.controller';
+import { LoginDetails } from '../app.entity';
 
 export interface UserInfo {
   username: string;
@@ -55,7 +54,7 @@ export class UsersService {
     });
     if (!roleFound) {
       throw new HttpException(
-        'Access rights cannot be granted to this user.',
+        'Access rights cannot be granted to this user. No defined system roles found, contact the admin.',
         HttpStatus.FORBIDDEN,
       );
     }
@@ -98,7 +97,7 @@ export class UsersService {
     };
   }
 
-  async updateUser(userInfo: User): Promise<any> {
+  async updateUser(userInfo: UserUpdateDto): Promise<any> {
     if (userInfo.password) {
       userInfo.password = await bcrypt.hash(userInfo.password, 10);
     }
@@ -110,7 +109,7 @@ export class UsersService {
     };
   }
 
-  async getAllUsers(...params: any[]): Promise<User[]> {
+  async getAllUsers(...params: any[]): Promise<UserResponse[]> {
     // console.log('params', params);
 
     let users: User[];
@@ -156,21 +155,21 @@ export class UsersService {
     }
   }
 
-  async addRole(roleInfo: Role): Promise<any> {
+  async addRole(roleInfo: RoleDto): Promise<any> {
     const roleExists = await this.rolesRepository.findOne<Role>({
       where: { role: roleInfo.role },
     });
     if (roleExists) {
       throw new HttpException('Role already exists.', HttpStatus.BAD_REQUEST);
     }
-    roleInfo.role_id = uuidGenerator();
+    roleInfo['role_id'] = uuidGenerator();
     await this.rolesRepository.create(roleInfo);
     return {
       message: 'Role added successfully',
     };
   }
 
-  async addUserRole(roleInfo: AddUserRole): Promise<any> {
+  async addUserRole(roleInfo: UserRoleDto): Promise<any> {
     // verify role existance in DB
     const roleFound: Role = await this.rolesRepository.findOne<Role>({
       where: { role: roleInfo['role'] },
@@ -199,8 +198,8 @@ export class UsersService {
     };
   }
 
-  async getRoles(...params: any[]): Promise<Role[] | UserRole[]> {
-    let roles: Role[] | UserRole[];
+  async getRoles(...params: any[]): Promise<RoleDto[] | UserRoleDto[]> {
+    let roles: RoleDto[] | UserRoleDto[];
     if (params.length > 0) {
       roles = await this.userRolesRepository.findAll({
         where: { [Op.and]: [...params.map(param => param)] },

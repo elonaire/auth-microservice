@@ -10,14 +10,9 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/auth.guard';
-import { Role, User, UserRole } from './user.entity';
+import { UserRoleDto, RoleDto, UserDto, UserResponse, UserUpdateDto } from './user.entity';
 import { UsersService } from './users.service';
 import { AuthRole, Roles } from '../auth/roles.decorator';
-
-export interface AddUserRole {
-    user_id: string;
-    role: string;
-}
 
 @Controller('users')
 export class UsersController {
@@ -26,7 +21,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Roles(AuthRole.User)
   @Get('fetch')
-  getUsers(@Query('user_id') user_id: string): Promise<User[]> {
+  getUsers(@Query('user_id') user_id?: string): Promise<UserResponse[]> {
     const args = [{ user_id }].filter(arg => {
       const argKeys = Object.keys(arg);
       if (arg[argKeys[0]]) {
@@ -37,7 +32,7 @@ export class UsersController {
   }
 
   @Post('create-user')
-  registerUser(@Body() user: User): Promise<any> {
+  registerUser(@Body() user: UserDto): Promise<any> {
     return this.userService.registerUser(user);
   }
 
@@ -49,7 +44,7 @@ export class UsersController {
 
   // @UseGuards(JwtAuthGuard)
   @Post('add-role')
-  addRole(@Body() role: Role): Promise<any> {
+  addRole(@Body() role: RoleDto): Promise<any> {
     return this.userService.addRole(role);
   }
 
@@ -61,7 +56,7 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Post('add-user-role')
-  addUserRole(@Body() userRole: AddUserRole): Promise<any> {
+  addUserRole(@Body() userRole: UserRoleDto): Promise<any> {
     return this.userService.addUserRole(userRole);
   }
 
@@ -73,7 +68,7 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Get('fetch-roles')
-  fetchRoles(@Query('user_id') user_id: string): Promise<Role[] | UserRole[]> {
+  fetchRoles(@Query('user_id') user_id: string): Promise<RoleDto[] | UserRoleDto[]> {
     const args = [{ user_id }].filter(arg => {
       const argKeys = Object.keys(arg);
       if (arg[argKeys[0]]) {
@@ -86,7 +81,7 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Put('update-user')
-  updateUser(@Body() user: User): Promise<any> {
+  updateUser(@Body() user: UserUpdateDto): Promise<any> {
     return this.userService.updateUser(user);
   }
 }
