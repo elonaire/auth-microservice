@@ -13,7 +13,7 @@ import { JwtAuthGuard } from '../auth/auth.guard';
 import { UserRoleDto, RoleDto, UserDto, UserResponse, UserUpdateDto } from './user.entity';
 import { UsersService } from './users.service';
 import { AuthRole, Roles } from '../auth/roles.decorator';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 
 @Controller('users')
 export class UsersController {
@@ -23,6 +23,7 @@ export class UsersController {
   @Roles(AuthRole.User)
   @ApiBearerAuth('Authorization')
   @Get('fetch')
+  @ApiQuery({ name: 'user_id', required: false})
   getUsers(@Query('user_id') user_id?: string): Promise<UserResponse[]> {
     const args = [{ user_id }].filter(arg => {
       const argKeys = Object.keys(arg);
@@ -93,3 +94,5 @@ export class UsersController {
     return this.userService.updateUser(user);
   }
 }
+
+
