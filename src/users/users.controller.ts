@@ -87,6 +87,7 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('Authorization')
   @Put('update-user')
   updateUser(@Body() user: UserUpdateDto): Promise<any> {
     return this.userService.updateUser(user);
